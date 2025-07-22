@@ -40,6 +40,10 @@
       margin-top: 30px;
       border-radius: 12px;
     }
+    #video-container {
+      display: none;
+      margin-top: 30px;
+    }
     canvas {
       position: fixed;
       top: 0;
@@ -54,7 +58,22 @@
   <h1>🎉 Countdown to Akil's 18th Birthday 🎉</h1>
   <div id="countdown"></div>
   <canvas id="confetti-canvas"></canvas>
+  <button id="enable-sound" style="margin-top:20px;font-size:1.2rem;padding:10px 30px;border-radius:8px;border:none;cursor:pointer;">🔊 Enable Sound</button>
   <audio id="birthday-audio" src="indaclub.mp3"></audio>
+  <div id="video-container">
+    <iframe
+      id="ytplayer"
+      width="560"
+      height="315"
+      src=""
+      title="YouTube video player"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="autoplay; encrypted-media"
+      allowfullscreen>
+    </iframe>
+  </div>
   <img id="birthday-image" src="akil.png" height="500px" alt="Akil birthday image" />
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -62,8 +81,20 @@
   <script>
   const targetDate = new Date("2025-07-21T20:35:30-04:00").getTime();
   let hasCelebrated = false;
+  let soundEnabled = false;
+
+  document.getElementById("enable-sound").addEventListener("click", function() {
+    const audio = document.getElementById("birthday-audio");
+    audio.play().then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      soundEnabled = true;
+      this.style.display = "none";
+    });
+  });
 
   function playBirthdayAudio() {
+    if (!soundEnabled) return;
     const audio = document.getElementById("birthday-audio");
     audio.currentTime = 0;
     audio.play();
@@ -78,7 +109,11 @@
       document.body.classList.add("celebrate");
       confettiLoop();
       document.getElementById("birthday-image").style.opacity = "1";
-      playBirthdayAudio();
+      // Show and autoplay YouTube video
+      const videoContainer = document.getElementById("video-container");
+      const ytplayer = document.getElementById("ytplayer");
+      ytplayer.src = "https://www.youtube.com/embed/5qm8PH4xAss?autoplay=1&start=43";
+      videoContainer.style.display = "block";
       hasCelebrated = true;
       return;
     }
