@@ -38,6 +38,13 @@
       transition: opacity 1s ease;
       margin-top: 30px;
     }
+    #birthday-image {
+      opacity: 0;
+      transition: opacity 1s ease;
+      max-width: 80%;
+      margin-top: 30px;
+      border-radius: 12px;
+    }
     canvas {
       position: fixed;
       top: 0;
@@ -53,6 +60,7 @@
   <div id="countdown"></div>
   <canvas id="confetti-canvas"></canvas>
   <div id="player"></div>
+  <img id="birthday-image" src="akil.png" height="500px" alt="Akil birthday image" />
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -73,20 +81,19 @@
         },
         events: {
           onReady: () => {
-            player.mute(); // Ensure autoplay works
+            player.mute(); // Allow autoplay
+            setTimeout(() => {
+              player.unMute(); // Unmute after a second
+            }, 1000);
           }
         }
       });
     }
 
     function playBirthdayVideo() {
-      const playerDiv = document.getElementById("player");
-      playerDiv.style.opacity = "1";
+      document.getElementById("player").style.opacity = "1";
       if (player && typeof player.playVideo === 'function') {
-        player.setVolume(100);
         player.playVideo();
-      } else {
-        console.log('Player not ready');
       }
     }
 
@@ -102,6 +109,7 @@
         document.body.classList.add("celebrate");
         confettiLoop();
         playBirthdayVideo();
+        document.getElementById("birthday-image").style.opacity = "1";
         hasCelebrated = true;
         return;
       }
