@@ -83,6 +83,7 @@
       const playerDiv = document.getElementById("player");
       playerDiv.style.opacity = "1";
       if (player && typeof player.playVideo === 'function') {
+        player.setVolume(100);
         player.playVideo();
       } else {
         console.log('Player not ready');
