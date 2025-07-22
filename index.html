@@ -60,20 +60,22 @@
   <div id="countdown"></div>
   <canvas id="confetti-canvas"></canvas>
   <div id="player"></div>
-  <img id="birthday-image" src="akil.png" height="500px" alt="Akil birthday image" />
+  <img id="birthday-image" src="akil.png" alt="Akil birthday image" />
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
+    let playerReady = false;
     let player;
+
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         height: '360',
         width: '640',
         videoId: '5qm8PH4xAss',
         playerVars: {
-          autoplay: 1,
+          autoplay: 0,
           controls: 0,
           modestbranding: 1,
           rel: 0,
@@ -81,19 +83,23 @@
         },
         events: {
           onReady: () => {
+            playerReady = true;
             player.mute(); // Allow autoplay
-            setTimeout(() => {
-              player.unMute(); // Unmute after a second
-            }, 1000);
           }
         }
       });
     }
 
     function playBirthdayVideo() {
-      document.getElementById("player").style.opacity = "1";
-      if (player && typeof player.playVideo === 'function') {
+      const playerDiv = document.getElementById("player");
+      playerDiv.style.opacity = "1";
+      if (playerReady && typeof player.playVideo === 'function') {
         player.playVideo();
+        setTimeout(() => {
+          player.unMute();
+        }, 1000);
+      } else {
+        console.log('Player not ready');
       }
     }
 
@@ -108,8 +114,8 @@
         document.getElementById("countdown").innerText = "🎂 🎉 Happy 18th Birthday, Akil! 🎉 🎂";
         document.body.classList.add("celebrate");
         confettiLoop();
-        playBirthdayVideo();
         document.getElementById("birthday-image").style.opacity = "1";
+        playBirthdayVideo();
         hasCelebrated = true;
         return;
       }
