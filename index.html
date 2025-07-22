@@ -68,6 +68,7 @@
   <script>
     let playerReady = false;
     let player;
+    let shouldPlayVideo = false; // Add this flag
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
@@ -85,6 +86,9 @@
           onReady: () => {
             playerReady = true;
             player.mute(); // Allow autoplay
+            if (shouldPlayVideo) { // Play if countdown already finished
+              playBirthdayVideo();
+            }
           }
         }
       });
@@ -99,7 +103,7 @@
           player.unMute();
         }, 1000);
       } else {
-        console.log('Player not ready');
+        shouldPlayVideo = true; // Set flag to play when ready
       }
     }
 
@@ -115,7 +119,7 @@
         document.body.classList.add("celebrate");
         confettiLoop();
         document.getElementById("birthday-image").style.opacity = "1";
-        playBirthdayVideo();
+        playBirthdayVideo(); // Always call this
         hasCelebrated = true;
         return;
       }
