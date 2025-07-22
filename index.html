@@ -18,6 +18,7 @@
       font-family: 'Arial', sans-serif;
       color: #fff;
       text-align: center;
+      overflow: hidden;
     }
     h1 {
       font-family: 'Pacifico', cursive;
@@ -32,32 +33,108 @@
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
+    #player {
+      opacity: 0;
+      transition: opacity 1s ease;
+      margin-top: 30px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <h1>🎉 Akil's 18th Birthday 🎉</h1>
+  <h1>🎉 Countdown to Akil's 18th Birthday 🎉</h1>
   <div id="countdown"></div>
+  <canvas id="confetti-canvas"></canvas>
+  <div id="player"></div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
-    const targetDate = new Date("2025-07-22T00:00:00-04:00").getTime();
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '360',
+        width: '640',
+        videoId: '5qm8PH4xAss',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          start: 43
+        },
+        events: {
+          onReady: () => {
+            player.mute(); // Ensure autoplay works
+          }
+        }
+      });
+    }
+
+    function playBirthdayVideo() {
+      const playerDiv = document.getElementById("player");
+      playerDiv.style.opacity = "1";
+      if (player && typeof player.playVideo === 'function') {
+        player.playVideo();
+      } else {
+        console.log('Player not ready');
+      }
+    }
+
+    const targetDate = new Date("2025-07-21T20:35:30-04:00").getTime();
+    let hasCelebrated = false;
 
     const countdown = () => {
       const now = new Date().getTime();
       const distance = targetDate - now;
 
-      if (distance < 0) {
+      if (distance < 0 && !hasCelebrated) {
         document.getElementById("countdown").innerText = "🎂 🎉 Happy 18th Birthday, Akil! 🎉 🎂";
+        document.body.classList.add("celebrate");
+        confettiLoop();
+        playBirthdayVideo();
+        hasCelebrated = true;
         return;
       }
 
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      if (distance >= 0) {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      document.getElementById("countdown").innerText =
-        `${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+        document.getElementById("countdown").innerText =
+          `${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+      }
     };
+
+    function confettiLoop() {
+      const duration = 5 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, {
+          particleCount,
+          origin: { x: Math.random(), y: Math.random() - 0.2 }
+        }));
+      }, 250);
+    }
 
     countdown();
     setInterval(countdown, 1000);
