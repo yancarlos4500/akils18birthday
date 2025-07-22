@@ -66,46 +66,42 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
-    let playerReady = false;
-    let player;
-    let shouldPlayVideo = false; // Add this flag
+  let playerReady = false;
+  let player;
+  let shouldPlayVideo = false;
 
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        height: '360',
-        width: '640',
-        videoId: '5qm8PH4xAss',
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          start: 43
-        },
-        events: {
-          onReady: () => {
-            playerReady = true;
-            player.mute(); // Allow autoplay
-            if (shouldPlayVideo) { // Play if countdown already finished
-              playBirthdayVideo();
-            }
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+      height: '360',
+      width: '640',
+      videoId: '5qm8PH4xAss',
+      playerVars: {
+        autoplay: 1, // <-- Set to 1 for autoplay
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        start: 43
+      },
+      events: {
+        onReady: () => {
+          playerReady = true;
+          if (shouldPlayVideo) {
+            playBirthdayVideo();
           }
         }
-      });
-    }
-
-    function playBirthdayVideo() {
-      const playerDiv = document.getElementById("player");
-      playerDiv.style.opacity = "1";
-      if (playerReady && typeof player.playVideo === 'function') {
-        player.playVideo();
-        setTimeout(() => {
-          player.unMute();
-        }, 1000);
-      } else {
-        shouldPlayVideo = true; // Set flag to play when ready
       }
+    });
+  }
+
+  function playBirthdayVideo() {
+    const playerDiv = document.getElementById("player");
+    playerDiv.style.opacity = "1";
+    if (playerReady && typeof player.playVideo === 'function') {
+      player.playVideo();
+    } else {
+      shouldPlayVideo = true;
     }
+  }
 
     const targetDate = new Date("2025-07-21T20:35:30-04:00").getTime();
     let hasCelebrated = false;
