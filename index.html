@@ -3,9 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Akil's Birthday Countdown</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+  <title>Akil's 19th Birthday Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+
   <style>
+    :root{
+      --red: #e10600;
+      --black: #0b0b0f;
+      --dark: #121218;
+      --glass: rgba(0,0,0,.45);
+      --border: rgba(225,6,0,.35);
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -14,36 +24,76 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      font-family: 'Arial', sans-serif;
+      background:
+        radial-gradient(900px 500px at 20% 20%, rgba(225, 6, 0, .30), transparent 60%),
+        radial-gradient(900px 500px at 80% 80%, rgba(225, 6, 0, .18), transparent 55%),
+        linear-gradient(135deg, var(--black) 0%, var(--dark) 55%, #1a0b0b 100%);
+      font-family: Arial, sans-serif;
       color: #fff;
       text-align: center;
       overflow: hidden;
     }
-    h1 {
-      font-family: 'Pacifico', cursive;
-      font-size: 3rem;
-      margin-bottom: 20px;
-    }
+
+   h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.2rem;
+  letter-spacing: 3px;
+  margin: 0 0 18px 0;
+  text-shadow: 0 6px 22px rgba(0,0,0,.55);
+}
+
     #countdown {
-      font-size: 2.5rem;
-      font-weight: bold;
-      background-color: rgba(0, 0, 0, 0.3);
-      padding: 20px 40px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      font-size: 2.3rem;
+      font-weight: 800;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      padding: 18px 34px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
+
     #birthday-image {
       opacity: 0;
       transition: opacity 1s ease;
-      max-width: 80%;
-      margin-top: 30px;
-      border-radius: 12px;
+      max-width: min(85%, 650px);
+      margin-top: 26px;
+      border-radius: 14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      border: 1px solid rgba(225, 6, 0, 0.25);
     }
+
     #video-container {
       display: none;
-      margin-top: 30px;
+      margin-top: 26px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(225, 6, 0, .25);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
     }
+
+    #ytplayer{
+      border-radius: 12px;
+      max-width: 90vw;
+    }
+
+    #enable-sound{
+      margin-top: 18px;
+      font-size: 1.1rem;
+      padding: 10px 26px;
+      border-radius: 10px;
+      border: 1px solid rgba(225,6,0,.45);
+      background: rgba(225,6,0,.12);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      transition: transform .12s ease, background .12s ease;
+    }
+    #enable-sound:hover{ transform: translateY(-1px); background: rgba(225,6,0,.18); }
+    #enable-sound:active{ transform: translateY(0px); }
+
     canvas {
       position: fixed;
       top: 0;
@@ -54,12 +104,18 @@
     }
   </style>
 </head>
+
 <body>
-  <h1>🎉 Countdown to Akil's 18th Birthday 🎉</h1>
+  <h1>🎉 Countdown to Akil's 19th Birthday 🎉</h1>
   <div id="countdown"></div>
+
   <canvas id="confetti-canvas"></canvas>
-  <button id="enable-sound" style="margin-top:20px;font-size:1.2rem;padding:10px 30px;border-radius:8px;border:none;cursor:pointer;">🔊 Enable Sound</button>
-  <audio id="birthday-audio" src="indaclub.mp3"></audio>
+
+  <button id="enable-sound">🔊 Enable Sound</button>
+
+  <!-- Keep audio tag for "user gesture" unlocking autoplay on some browsers -->
+  <audio id="birthday-audio" preload="auto"></audio>
+
   <div id="video-container">
     <iframe
       id="ytplayer"
@@ -70,87 +126,96 @@
       frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       referrerpolicy="strict-origin-when-cross-origin"
-      allow="autoplay; encrypted-media"
       allowfullscreen>
     </iframe>
   </div>
+
   <img id="birthday-image" src="akil.png" height="500px" alt="Akil birthday image" />
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
-  const targetDate = new Date("2025-07-22T00:00:00-04:00").getTime();
-  let hasCelebrated = false;
-  let soundEnabled = false;
+    // Akil's 19th birthday (same date, next year): July 22, 2026 at 00:00 ET
+    const targetDate = new Date("2025-07-22T00:00:00-04:00").getTime();
 
-  document.getElementById("enable-sound").addEventListener("click", function() {
-    const audio = document.getElementById("birthday-audio");
-    audio.play().then(() => {
-      audio.pause();
-      audio.currentTime = 0;
+    let hasCelebrated = false;
+    let soundEnabled = false;
+
+    // YouTube video ID from: https://www.youtube.com/watch?v=XPejk_-rMDI
+    const YT_VIDEO_ID = "XPejk_-rMDI";
+
+    document.getElementById("enable-sound").addEventListener("click", function () {
+      // "Unlock" autoplay by making a user-initiated play attempt.
+      // We'll just mark sound enabled and hide the button.
       soundEnabled = true;
       this.style.display = "none";
     });
-  });
 
-  function playBirthdayAudio() {
-    if (!soundEnabled) return;
-    const audio = document.getElementById("birthday-audio");
-    audio.currentTime = 0;
-    audio.play();
-  }
-
-  const countdown = () => {
-    const now = new Date().getTime();
-    const distance = targetDate - now;
-
-    if (distance < 0 && !hasCelebrated) {
-      document.getElementById("countdown").innerText = "🎂 🎉 Happy 18th Birthday, Akil! 🎉 🎂";
-      document.body.classList.add("celebrate");
-      confettiLoop();
-      document.getElementById("birthday-image").style.opacity = "1";
-      // Show and autoplay YouTube video
+    function launchYouTube() {
       const videoContainer = document.getElementById("video-container");
       const ytplayer = document.getElementById("ytplayer");
-      ytplayer.src = "https://www.youtube.com/embed/5qm8PH4xAss?autoplay=1&start=43";
+
+      // Autoplay + modest branding; you can add &start=SECONDS if you want a specific start time
+      ytplayer.src = `https://www.youtube.com/embed/${YT_VIDEO_ID}?autoplay=1&playsinline=1&rel=0`;
       videoContainer.style.display = "block";
-      hasCelebrated = true;
-      return;
     }
 
-    if (distance >= 0) {
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    function confettiLoopRedBlack() {
+      const duration = 6 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 32, spread: 360, ticks: 70, zIndex: 0 };
 
-      document.getElementById("countdown").innerText =
-        `${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+      const interval = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
+
+        const particleCount = 60 * (timeLeft / duration);
+
+        confetti(Object.assign({}, defaults, {
+          particleCount,
+          // red + black (and a touch of white so black shows on dark bg)
+          colors: ["#e10600", "#000000", "#ffffff"],
+          origin: { x: Math.random(), y: Math.random() - 0.2 }
+        }));
+      }, 250);
     }
-  };
 
-  function confettiLoop() {
-    const duration = 5 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+    const countdown = () => {
+      const now = Date.now();
+      const distance = targetDate - now;
 
-    const interval = setInterval(function () {
-      const timeLeft = animationEnd - Date.now();
+      if (distance < 0 && !hasCelebrated) {
+        document.getElementById("countdown").innerText = "🎂 🖤 Happy 19th Birthday, Akil! ❤️ 🎂";
+        confettiLoopRedBlack();
+        document.getElementById("birthday-image").style.opacity = "1";
 
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
+        // Only autoplay YouTube if user enabled sound (helps avoid autoplay blocks)
+        if (soundEnabled) launchYouTube();
+        else {
+          // Show the video container (still clickable to play if autoplay is blocked)
+          const videoContainer = document.getElementById("video-container");
+          const ytplayer = document.getElementById("ytplayer");
+          ytplayer.src = `https://www.youtube.com/embed/${YT_VIDEO_ID}?playsinline=1&rel=0`;
+          videoContainer.style.display = "block";
+        }
+
+        hasCelebrated = true;
+        return;
       }
 
-      const particleCount = 50 * (timeLeft / duration);
-      confetti(Object.assign({}, defaults, {
-        particleCount,
-        origin: { x: Math.random(), y: Math.random() - 0.2 }
-      }));
-    }, 250);
-  }
+      if (distance >= 0) {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  countdown();
-  setInterval(countdown, 1000);
+        document.getElementById("countdown").innerText =
+          `${days} Days ${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+      }
+    };
+
+    countdown();
+    setInterval(countdown, 1000);
   </script>
 </body>
 </html>
