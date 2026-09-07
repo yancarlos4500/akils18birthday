@@ -520,8 +520,8 @@
       transform-style: preserve-3d;
       cursor: pointer;
       transition: transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s ease;
-      will-change: transform, box-shadow;
-      animation: floatY 6s ease-in-out infinite, breathe 5s ease-in-out infinite;
+      will-change: transform, box-shadow, rotate;
+      animation: floatY 6s ease-in-out infinite, breathe 5s ease-in-out infinite, discoSpin 10s linear infinite;
     }
     .portrait img {
       width: 100%; height: 100%;
@@ -539,7 +539,11 @@
       pointer-events: none;
       z-index: 2;
     }
-    .portrait.spin { animation: spinPop .9s cubic-bezier(.2,.9,.2,1) both; }
+    .portrait.spin { animation: spinPop .9s cubic-bezier(.2,.9,.2,1) both, discoSpin 10s linear infinite; }
+    @keyframes discoSpin {
+      from { rotate: 0deg; }
+      to   { rotate: 360deg; }
+    }
     @keyframes floatY {
       0%, 100% { transform: translateY(0) rotate(-1deg); }
       50%      { transform: translateY(-10px) rotate(1deg); }
@@ -751,6 +755,90 @@
       .takeover .sub { opacity: 1; }
       html, body { cursor: auto; }
     }
+
+    /* ═══════════════ FINAL MINUTE MODE ═══════════════ */
+    /* --fm ramps 0 → 1 as we cross the 80s → 60s window (set by JS).
+       --tile-dx / --tile-dy / --tile-scale-max are measured by JS so the
+       seconds tile can morph smoothly from its grid cell to viewport-center
+       at max size — one continuous transition, no snap. */
+    body { --fm: 0; --tile-dx: 0px; --tile-dy: 0px; --tile-scale-max: 1; --go: 0; }
+    /* Red → green color shift for the final 30 seconds (--go 0 → 1). */
+    body {
+      filter: hue-rotate(calc(var(--go) * 130deg));
+      transition: filter 1.5s ease-out;
+    }
+
+    /* Chrome fades out during the ramp. */
+    .top, .title-wrap, .portrait-stage, .meta-row, .actions,
+    .marquee, .foot, .sound-hint, .grid-floor, .horizon, .watermark {
+      opacity: calc(1 - var(--fm));
+      transition: opacity 0.25s ease-out;
+    }
+    body.final-minute .top,
+    body.final-minute .title-wrap,
+    body.final-minute .portrait-stage,
+    body.final-minute .meta-row,
+    body.final-minute .actions,
+    body.final-minute .marquee,
+    body.final-minute .foot,
+    body.final-minute .sound-hint { pointer-events: none; }
+
+    /* Days/Hours/Minutes tiles fade in place — they keep their grid cell so
+       the seconds tile's measured base position never shifts. */
+    .countdown .tile:nth-child(1),
+    .countdown .tile:nth-child(2),
+    .countdown .tile:nth-child(3) {
+      opacity: calc(1 - var(--fm));
+      transition: opacity 0.25s ease-out;
+    }
+
+    /* Seconds tile: translate to viewport center + scale up, interpolated by --fm. */
+    .countdown .tile:nth-child(4) {
+      transform:
+        translate(calc(var(--tile-dx) * var(--fm)), calc(var(--tile-dy) * var(--fm)))
+        scale(calc(1 + (var(--tile-scale-max) - 1) * var(--fm)));
+      transform-origin: center;
+      transition: transform 0.2s linear;
+      will-change: transform;
+      text-align: center;
+    }
+    .countdown .tile:nth-child(4) .flip { text-align: center; }
+    .countdown .tile:nth-child(4) .flip .card { display: inline-block; }
+    /* Hide the small corner dot as the tile becomes the focus. */
+    .countdown .tile:nth-child(4)::after {
+      opacity: calc(1 - var(--fm));
+      transition: opacity 0.25s ease-out;
+    }
+    body.final-minute .countdown .tile:nth-child(4) {
+      z-index: 5;
+      animation: finalPulse 1s ease-in-out infinite;
+    }
+
+    body.final-minute { cursor: auto; --fm: 1; }
+    @keyframes finalPulse {
+      0%, 100% {
+        box-shadow:
+          0 30px 60px -20px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 0 40px rgba(255, 34, 68, 0.35);
+      }
+      50% {
+        box-shadow:
+          0 30px 60px -20px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 0 100px rgba(255, 34, 68, 0.85);
+      }
+    }
+    body.final-minute .base { animation: finalBgPulse 1s ease-in-out infinite; }
+    @keyframes finalBgPulse {
+      0%, 100% { filter: brightness(1)    saturate(1); }
+      50%      { filter: brightness(1.25) saturate(1.3); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.final-minute .base,
+      body.final-minute .countdown .tile:nth-child(4) { animation: none !important; }
+      .countdown .tile:nth-child(4) { transition: none !important; }
+    }
   </style>
 </head>
 
@@ -873,7 +961,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
     // Akil's 20th birthday: July 22, 2027 at 00:00 ET
-    const targetDate = new Date("2027-07-22T00:00:00-04:00").getTime();
+    const targetDate = new Date("2027-09-06T23:08:30-05:00").getTime();
     const startDate  = new Date("2026-07-22T00:00:00-04:00").getTime();
     const RING_CIRCUM = 2 * Math.PI * 15;
 
@@ -906,7 +994,7 @@
     const audioEl    = $("wait-audio");
     const partyAudio = $("birthday-audio");
     audioEl.volume    = 0.55;
-    partyAudio.volume = 0.85;
+    partyAudio.volume = 0;
 
     let audioUnlocked = false;
     function unlockAudio() {
@@ -969,7 +1057,10 @@
       }
     }
 
+    let birthdayStarted = false;
     function playBirthdayAudio() {
+      if (birthdayStarted) return;
+      birthdayStarted = true;
       try {
         partyAudio.currentTime = 0;
         const p = partyAudio.play();
@@ -1049,6 +1140,56 @@
       $("clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     }
 
+    // Measure the seconds tile's "resting" (untransformed) rect and publish
+    // the delta-to-viewport-center + max scale as CSS variables so the
+    // final-minute morph is a single continuous transition.
+    function measureFinalTargets() {
+      const tile = document.querySelector(".countdown .tile:nth-child(4)");
+      if (!tile) return;
+      const prev = tile.style.transform;
+      tile.style.transform = "none";
+      // Force a reflow so getBoundingClientRect reports the untransformed rect.
+      void tile.offsetWidth;
+      const rect = tile.getBoundingClientRect();
+      tile.style.transform = prev;
+      if (rect.width < 4 || rect.height < 4) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const targetW  = Math.min(vw * 0.9, 900);
+      const scaleMax = Math.max(1, targetW / rect.width);
+      const cx = rect.left + rect.width  / 2;
+      const cy = rect.top  + rect.height / 2;
+      document.body.style.setProperty("--tile-dx", (vw / 2 - cx).toFixed(1) + "px");
+      document.body.style.setProperty("--tile-dy", (vh / 2 - cy).toFixed(1) + "px");
+      document.body.style.setProperty("--tile-scale-max", scaleMax.toFixed(3));
+    }
+    // Measure now, after fonts load, and on resize.
+    measureFinalTargets();
+    window.addEventListener("load", measureFinalTargets);
+    window.addEventListener("resize", measureFinalTargets);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureFinalTargets);
+
+    // rAF-driven --fm ramp: 60s → 50s remaining, interpolated every animation
+    // frame for a genuinely smooth 10-second morph instead of 10 tick-steps.
+    let fmRafActive = false;
+    function fmRaf() {
+      const distance = targetDate - Date.now();
+      let fm = 0;
+      if (distance <= 50000)      fm = 1;
+      else if (distance <= 60000) fm = (60000 - distance) / 10000;
+      document.body.style.setProperty("--fm", fm.toFixed(4));
+      if (distance > -2000 && distance <= 62000) requestAnimationFrame(fmRaf);
+      else fmRafActive = false;
+    }
+    function ensureFmRaf() {
+      if (fmRafActive) return;
+      const distance = targetDate - Date.now();
+      if (distance > -2000 && distance <= 62000) {
+        fmRafActive = true;
+        requestAnimationFrame(fmRaf);
+      }
+    }
+
     function tick() {
       const now = Date.now();
       const distance = targetDate - now;
@@ -1056,10 +1197,37 @@
 
       const total = targetDate - startDate;
       const done  = Math.min(1, Math.max(0, (now - startDate) / total));
-      $("pct").textContent = Math.round(done * 100) + "%";
+      $("pct").textContent = Math.round((done * 100)-1) + "%";
       $("ring-bar").setAttribute("stroke-dashoffset", (RING_CIRCUM * (1 - done)).toFixed(2));
 
+      // Final-minute takeover: promote countdown, hide the rest.
+      document.body.classList.toggle("final-minute", distance > 0 && distance <= 50000);
+      // Smooth 10-second morph from 1:00 → 0:50 remaining is driven by rAF, not tick.
+      ensureFmRaf();
+
+      // Fade wait.mp3 out: begins at 18s remaining, completely silent by 13s.
+      if (distance > 0) {
+        if (distance <= 13000)      audioEl.volume = 0;
+        else if (distance <= 18000) audioEl.volume = 0.55 * ((distance - 13000) / 5000);
+        else                        audioEl.volume = 0.55;
+      }
+      // Fade birthday.mp3 in: silent at 15s, full by 10s (matches the 15s start).
+      if (birthdayStarted && distance > 0) {
+        if (distance >= 10000)      partyAudio.volume = 0.85 * Math.max(0, (15000 - distance) / 5000);
+        else                        partyAudio.volume = 0.85;
+      }
+
+      // Color shift red → green over the final 30 seconds.
+      let go = 0;
+      if (distance <= 0) go = 1;
+      else if (distance <= 30000) go = 1 - distance / 30000;
+      document.body.style.setProperty("--go", go.toFixed(3));
+
+      // Kick off birthday.mp3 at 15 seconds so it's already rolling by zero.
+      if (distance > 0 && distance <= 15000) playBirthdayAudio();
+
       if (distance <= 0) {
+        document.body.classList.remove("final-minute");
         setNum("d", 0); setNum("h", 0); setNum("m", 0); setNum("s", 0);
         if (!hasCelebrated) { hasCelebrated = true; celebrate(); }
         return;
